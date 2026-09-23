@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DM Hub AI</title>
+<style>
+body{margin:0;font-family:Inter,Arial,sans-serif;background:#f5f7fb;color:#101828}
+header{background:#07152e;color:#fff;padding:15px 18px;font-weight:900;font-size:24px;position:sticky;top:0}
+header span{color:#4ea0ff}.wrap{max-width:900px;margin:auto;padding:35px 16px}.hero{background:linear-gradient(135deg,#07152e,#33206d);color:#fff;border-radius:24px;padding:30px;margin-bottom:25px}.hero h1{font-size:40px;margin:0 0 10px}.hero p{color:#cbd7ed;line-height:1.6}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.card{background:#fff;border:1px solid #e3e8f0;border-radius:18px;padding:20px;box-shadow:0 10px 30px #172b4d0a}.card h2{font-size:19px}.card p{color:#667085}.input{width:100%;padding:12px;border:1px solid #d6dce7;border-radius:10px;box-sizing:border-box;margin:8px 0;outline:none}.btn{width:100%;padding:12px;border:0;border-radius:10px;background:#278cff;color:#fff;font-weight:800;cursor:pointer}.btn:disabled{opacity:.6}.out{margin-top:10px;background:#f2f5fa;border-radius:10px;padding:13px;white-space:pre-wrap;line-height:1.5;display:none}.out.show{display:block}.loading{color:#667085}
+.note{margin-top:22px;padding:15px;border-radius:13px;background:#fff6db;border:1px solid #f3df9a;color:#684f00;font-size:14px;line-height:1.5}
+@media(max-width:600px){.hero h1{font-size:32px}}
+</style></head>
+<body>
+<header>♛ DM<span>Hub</span> AI</header>
+<div class="wrap">
+<section class="hero"><h1>Real AI Creator Tools</h1><p>Enter a topic and DM Hub sends it to the AI backend, then shows the generated result.</p></section>
+<div class="grid">
+<div class="card"><h2>🎬 Shorts Titles</h2><p>Generate 10 title ideas.</p><input class="input" id="title" placeholder="e.g. funny cat video"><button class="btn" onclick="go('title','title')">Generate</button><div class="out" id="title-out"></div></div>
+<div class="card"><h2>📸 Instagram Caption</h2><p>Generate 3 caption styles.</p><input class="input" id="caption" placeholder="e.g. gym motivation"><button class="btn" onclick="go('caption','caption')">Generate</button><div class="out" id="caption-out"></div></div>
+<div class="card"><h2>#️⃣ Hashtags</h2><p>Generate relevant hashtags.</p><input class="input" id="hashtag" placeholder="e.g. travel"><button class="btn" onclick="go('hashtag','hashtag')">Generate</button><div class="out" id="hashtag-out"></div></div>
+<div class="card"><h2>🤖 AI Prompt</h2><p>Turn an idea into a detailed prompt.</p><input class="input" id="prompt" placeholder="e.g. 3D cartoon cat story"><button class="btn" onclick="go('prompt','prompt')">Generate</button><div class="out" id="prompt-out"></div></div>
+<div class="card"><h2>🎯 Video Hooks</h2><p>Create short-form opening hooks.</p><input class="input" id="hook" placeholder="e.g. iPhone tips"><button class="btn" onclick="go('hook','hook')">Generate</button><div class="out" id="hook-out"></div></div>
+<div class="card"><h2>📝 Description</h2><p>Write a YouTube description.</p><input class="input" id="description" placeholder="e.g. BGMI tips"><button class="btn" onclick="go('description','description')">Generate</button><div class="out" id="description-out"></div></div>
+</div>
+<div class="note"><b>Setup:</b> this version keeps the API key on the server. Add your key to the server environment as <code>OPENAI_API_KEY</code>; never put the key directly into this HTML.</div>
+</div>
+<script>
+async function go(type,id){
+ const input=document.getElementById(id), out=document.getElementById(id+'-out');
+ const btn=input.nextElementSibling; const topic=input.value.trim();
+ if(!topic){out.textContent='Please enter a topic first.';out.classList.add('show');return}
+ btn.disabled=true; btn.textContent='Generating…'; out.textContent='AI is generating your result…';out.classList.add('show');
+ try{
+   const r=await fetch('/api/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,topic})});
+   const d=await r.json(); if(!r.ok) throw new Error(d.error||'Request failed');
+   out.textContent=d.text;
+ }catch(e){out.textContent='Error: '+e.message}
+ finally{btn.disabled=false;btn.textContent='Generate'}
+}
+</script></body></html>
