@@ -34,18 +34,148 @@ button{cursor:pointer;border:0;border-radius:12px;padding:13px;margin-top:12px;b
 </div>
 </div>
 <script>
-let tool='titles';
-function setTool(t,el){tool=t;document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));el.classList.add('active');document.getElementById('result').textContent='Your result will appear here...';}
-function generate(){
- const x=(document.getElementById('topic').value.trim()||'your amazing video');let out='';
- if(tool==='titles')out=[`🔥 You Won't Believe This: ${x}`,`Wait For The Ending 😱 | ${x}`,`This Was Too Funny 😂 | ${x}`,`${x} But It Gets Better 🤯`,`POV: The Funniest ${x} 😂`,`The Ending Was Unexpected 😳 | ${x}`].join('\n');
- if(tool==='caption')out=`😂 ${x}\n\nSome moments are just too good not to share!\nWhich part was your favorite? 👇\n\nFollow for more 🔥`;
- if(tool==='hashtags'){let w=x.toLowerCase().replace(/[^a-z0-9 ]/g,'').split(/\s+/).filter(Boolean).slice(0,4);out=[...w.map(a=>'#'+a),'#shorts','#ytshorts','#viral','#trending','#fyp','#reels','#creator'].join(' ');}
- if(tool==='hook')out=['STOP SCROLLING! You need to see this 👀','I did NOT expect this to happen 😳','Wait till you see the ending… 🤯','Nobody was ready for this 😂','This might be the funniest thing today!'].join('\n');
- if(tool==='description')out=`${x} 🎬\n\nWatch till the end for the best moment! If you enjoyed it, like, comment and subscribe for more videos.\n\n#shorts #viral #trending`;
- document.getElementById('result').textContent=out;
+let tool = 'titles';
+
+function setTool(t, el) {
+  tool = t;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+
+  const label = document.getElementById('label');
+
+  if (tool === 'video') {
+    label.textContent = 'Your video topic';
+  } else {
+    label.textContent = 'Enter your topic';
+  }
 }
-function copyResult(){navigator.clipboard?.writeText(document.getElementById('result').textContent);}
+
+async function generate() {
+  const x = document.getElementById('topic').value.trim();
+  const result = document.getElementById('result');
+
+  if (!x) {
+    result.textContent = 'Please enter a topic first.';
+    return;
+  }
+
+  result.textContent = '⏳ Generating...';
+
+  /* REAL VIDEO GENERATOR */
+  if (tool === 'video') {
+    try {
+      const start = await fetch('/api/video/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt: x
+        })
+      });
+
+      const data = await start.json();
+
+      if (!start.ok) {
+        throw new Error(data.error || 'Video generation failed.');
+      }
+
+      result.textContent = '🎬 Video generation started... Please wait.';
+
+      const jobId = data.jobId;
+
+      while (true) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+
+        const statusResponse =
+          await fetch('/api/video/status/' + jobId);
+
+        const statusData = await statusResponse.json();
+
+        if (!statusResponse.ok) {
+          throw new Error(
+            statusData.error || 'Could not check video status.'
+          );
+        }
+
+        if (statusData.status === 'processing') {
+          result.textContent =
+            '🎬 Video is being created... Please wait.';
+        }
+
+        if (statusData.status === 'done') {
+          result.innerHTML = `
+            <p>✅ Video ready!</p>
+            <video controls playsinline style="width:100%;border-radius:12px;">
+              <source src="${statusData.url}" type="video/mp4">
+            </video>
+            <br>
+            <a href="${statusData.url}" download
+               style="display:inline-block;margin-top:15px;padding:12px 18px;background:#7c4dff;color:white;border-radius:10px;text-decoration:none;">
+              ⬇️ Download Video
+            </a>
+          `;
+          break;
+        }
+      }
+
+    } catch (error) {
+      result.textContent =
+        '❌ ' + (error.message || 'Video generation failed.');
+    }
+
+    return;
+  }
+
+  /* EXISTING CREATOR TOOLS */
+  let out = '';
+
+  if (tool === 'titles') {
+    out =
+      '🔥 You Won’t Believe This! ' + x +
+      '\n\n🚀 Must Watch Till The End!';
+  }
+
+  if (tool === 'caption') {
+    out =
+      '😂 ' + x +
+      '\n\nSome moments are simply unforgettable! ❤️';
+  }
+
+  if (tool === 'hashtags') {
+    const words = x
+      .toLowerCase()
+      .replace(/[^a-z0-9 ]/g, '')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    out = words
+      .map(w => '#' + w)
+      .join(' ') +
+      ' #viral #trending #reels #shorts';
+  }
+
+  if (tool === 'hook') {
+    out =
+      'STOP SCROLLING! 👀 You need to see this ' +
+      x + '!';
+  }
+
+  if (tool === 'description') {
+    out =
+      x +
+      ' 🎬\n\nWatch till the end and don’t forget to like, share and subscribe! ❤️';
+  }
+
+  result.textContent = out;
+}
+
+function copyResult() {
+  const text =
+    document.getElementById('result').innerText;
+
+  navigator.clipboard?.writeText(text);
+}
 </script>
 <footer style="text-align:center;padding:28px 10px;color:#8f98a8;font-size:13px">
 <a href="/about.html" style="color:#9a7cff;margin:0 8px">About</a>
