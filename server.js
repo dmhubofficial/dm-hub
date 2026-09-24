@@ -40,7 +40,7 @@ app.post("/api/video/start", async (req, res) => {
     const ai = await getAI();
 
     const operation = await ai.models.generateVideos({
-      model: "veo-3.1-generate-preview",
+      model: "veo-3.1-lite-generate-preview",
       prompt: prompt,
       config: {
         aspectRatio: "9:16",
