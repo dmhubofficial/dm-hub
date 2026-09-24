@@ -1,6 +1,7 @@
 {
   "name": "dm-hub",
-  "version": "6.0.0",
+  "version": "1.0.0",
+  "description": "DM Hub creator utility website",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
